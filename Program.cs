@@ -23,22 +23,21 @@ namespace billing_dotnet_invoice_api
         {
             Run().Wait();
         }
-
         public static async Task Run()
         {
             BillingClient billingClient = await GetBillingClient();
             
             Write("Listing invoices:");
-            billingClient.Invoices.List().ToList().ForEach(inv => {
-                Write("\tName: {0}, Id: {1}", inv.Name, inv.Id);
+            billingClient.Invoices.List("downloadUrl").ToList().ForEach(inv => {
+                Write("\tName: {0}, URL: {1}", inv.Name, inv.DownloadUrl.Url);
             });
             Write(Environment.NewLine);
 
-            //TODO: handle 404
+            //TODO: handle 404 invoice not found
         }
         public static async Task<BillingClient> GetBillingClient()
         {
-            // Set up configuration sources.
+            // Import config values from appsettings.json into billingClient, or throw an error if not found
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json");
@@ -48,13 +47,14 @@ namespace billing_dotnet_invoice_api
             var tenantId = Configuration["TenantDomain"];
             var clientId = Configuration["ClientID"];
             var secret = Configuration["ClientSecret"];
-            var subscriptionId = Configuration["SubscriptionId"];
+            var subscriptionId = Configuration["SubscriptionID"];
 
             if(new List<string>{ tenantId, clientId, secret, subscriptionId }.Any(i => String.IsNullOrEmpty(i))) {
-                throw new InvalidOperationException("Please provide TenantDomain, ClientID, ClientSecret and SubscriptionId in appsettings.json");
+                throw new InvalidOperationException("Enter TenantDomain, ClientID, ClientSecret and SubscriptionId in appsettings.json");
             }
             else
             {
+                // Build the service credentials and ARM client to call the billing API
                 var serviceCreds = await ApplicationTokenProvider.LoginSilentAsync(tenantId, clientId, secret);
                 var billingClient = new BillingClient(serviceCreds);
                 billingClient.SubscriptionId = subscriptionId;
