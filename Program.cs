@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.Configuration;
 
 // Azure Management dependencies
@@ -27,13 +29,22 @@ namespace billing_dotnet_invoice_api
         {
             BillingClient billingClient = await GetBillingClient();
             
-            Write("Listing invoices:");
-            billingClient.Invoices.List("downloadUrl").ToList().ForEach(inv => {
-                Write("\tName: {0}, URL: {1}", inv.Name, inv.DownloadUrl.Url);
+            // Call the invoices service and expand the downloadURL, this call may take a while'
+            // TODO: handle 404 invoice not found
+            Write("Calling invoice service for all available invoices...");
+            List<Invoice> allInvoices = billingClient.Invoices.List("downloadUrl").ToList();
+
+            Write("{0} invoice(s) received.  Press ENTER to see them.", allInvoices.Count);
+            Console.ReadLine();
+            
+            allInvoices.ForEach(inv => {
+                Write("\tName: {0}", inv.Name);
+                Write("\tDate: {0} to {1}", inv.InvoicePeriodStartDate, inv.InvoicePeriodEndDate);
+                Write("\tPress ENTER to open PDF in browser");
+                Console.ReadLine();
+                OpenURL(inv.DownloadUrl.Url);
             });
             Write(Environment.NewLine);
-
-            //TODO: handle 404 invoice not found
         }
         public static async Task<BillingClient> GetBillingClient()
         {
@@ -60,6 +71,34 @@ namespace billing_dotnet_invoice_api
                 billingClient.SubscriptionId = subscriptionId;
                 return billingClient;
             }
+        }
+        public static void OpenURL(string url)
+        {
+            try
+            {
+                Process.Start(url);
+            }
+            catch
+            {
+                // https://github.com/dotnet/corefx/issues/10361
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    url = url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Process.Start("xdg-open", url);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    Process.Start("open", url);
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }        
     }
 }
