@@ -14,7 +14,7 @@ This is a simple .NET Core sample that uses the Azure .NET SDK to programmatical
 1. Get the Account Admin of the subscription to [opt in and turn on API access to invoices](https://docs.microsoft.com/azure/billing/billing-manage-access).
 
 1. Create an Azure service principal either through
-    [Azure CLI](https://docs.microsoft.com/azure/azure-resource-manager/resource-group-authenticate-service-principal-cli/),
+    [Azure CLI](https://docs.microsoft.com/cli/azure/create-an-azure-service-principal-azure-cli?toc=%2fazure%2fazure-resource-manager%2ftoc.json),
     [PowerShell](https://docs.microsoft.com/azure/azure-resource-manager/resource-group-authenticate-service-principal/)
     or [the portal](https://docs.microsoft.com/azure/azure-resource-manager/resource-group-create-service-principal-portal/).
 
