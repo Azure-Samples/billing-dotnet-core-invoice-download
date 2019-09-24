@@ -1,8 +1,13 @@
 ---
-services: azure-billing
-platforms: dotnet-core
-author: jlian
+page_type: sample
+languages:
+- csharp
+products:
+- dotnet
+- azure
+description: "This is a simple .NET Core sample that uses the Azure .NET SDK to programmatically get your invoices."
 ---
+
 # Get Azure invoice with .NET Core
 
 This is a simple .NET Core sample that uses the Azure .NET SDK to programmatically get your invoices.
